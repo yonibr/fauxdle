@@ -29,7 +29,7 @@ class Game(object):
         self.word = (
             self.words_df.loc[self.words_df.word_length == word_length, 'word'].sample(1).values[0]
         )
-        self.letter_counts = Counter(self.word)
+        self._letter_counts = Counter(self.word)
         self.guessed_letters: defaultdict[str, GuessResult] = defaultdict(
             lambda: GuessResult.NOT_GUESSED
         )
@@ -53,7 +53,7 @@ class Game(object):
             if guess_letter == actual_letter:
                 result = GuessResult.CORRECT
                 letter_counts[guess_letter] += 1
-            elif letter_counts[guess_letter] <= self.letter_counts[guess_letter]:
+            elif letter_counts[guess_letter] <= self._letter_counts[guess_letter]:
                 recheck_indices.append(i)  # Save index for later; see comment below
                 result = GuessResult.NOT_PRESENT
             else:
@@ -69,7 +69,7 @@ class Game(object):
         for idx in recheck_indices:
             guess_letter = word[idx]
             letter_counts[guess_letter] += 1
-            if letter_counts[guess_letter] <= self.letter_counts[guess_letter]:
+            if letter_counts[guess_letter] <= self._letter_counts[guess_letter]:
                 guess_results[idx] = GuessResult.WRONG_PLACE
                 self.guessed_letters[guess_letter] = max(
                     self.guessed_letters[guess_letter], GuessResult.WRONG_PLACE

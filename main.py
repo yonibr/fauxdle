@@ -12,12 +12,12 @@ ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
 class GUI(object):
     def __init__(self):
-        self.window = tk.Tk()
-        self.window.title('Fauxdle')
-        self.window.resizable(False, False)
-        self.main_frame = ttk.Frame(master=self.window)
-        self.main_frame.pack(anchor='nw', fill=tk.BOTH)
-        style = ttk.Style(self.main_frame)
+        self._window = tk.Tk()
+        self._window.title('Fauxdle')
+        self._window.resizable(False, False)
+        self._main_frame = ttk.Frame(master=self._window)
+        self._main_frame.pack(anchor='nw', fill=tk.BOTH)
+        style = ttk.Style(self._main_frame)
         style.theme_use('classic')
         style.configure('.', font=('Arial', 20))
 
@@ -28,13 +28,13 @@ class GUI(object):
         self._add_num_letters_components()
 
         new_game_button = ttk.Button(
-            master=self.main_frame, text='New Game', command=self._new_game
+            master=self._main_frame, text='New Game', command=self._new_game
         )
         new_game_button.grid(row=MAX_GUESSES + 3, column=4, columnspan=2, sticky='se')
 
-        self.require_real_words = tk.BooleanVar(value=True)
+        self._require_real_words = tk.BooleanVar(value=True)
         real_word_checkbox = ttk.Checkbutton(
-            self.main_frame, text='Require real words', variable=self.require_real_words,
+            self._main_frame, text='Require real words', variable=self._require_real_words,
             onvalue=True, offvalue=False
         )
         real_word_checkbox.grid(row=MAX_GUESSES + 2, column=0, columnspan=3, sticky='ne', padx=20)
@@ -46,11 +46,11 @@ class GUI(object):
 
         self._new_game()
 
-        self.window.bind("<Key>", self._handle_keypress)
-        self.window.mainloop()
+        self._window.bind("<Key>", self._handle_keypress)
+        self._window.mainloop()
 
     def _add_used_letters_pane(self) -> None:
-        used_letters_pane = ttk.Frame(self.main_frame)
+        used_letters_pane = ttk.Frame(self._main_frame)
         used_letters_pane.grid(row=MAX_GUESSES, column=0, rowspan=2, columnspan=5)
 
         self._letters_labels = []
@@ -64,7 +64,7 @@ class GUI(object):
             self._letters_labels.append(label)
 
     def _add_num_letters_components(self) -> None:
-        self._num_letters_frame = ttk.Frame(master=self.main_frame, height=75, width=75 * 3)
+        self._num_letters_frame = ttk.Frame(master=self._main_frame, height=75, width=75 * 3)
         self._num_letters_frame.grid(column=0, row=MAX_GUESSES + 3, columnspan=3, sticky='sw')
         self._num_letters_label = ttk.Label(
             master=self._num_letters_frame, text=f'{self._num_letters}', anchor='center', width=50,
@@ -95,13 +95,13 @@ class GUI(object):
         self._grid = [[None] * self._num_letters for _ in range(MAX_GUESSES)]
         self._grid_labels = [[None] * self._num_letters for _ in range(MAX_GUESSES)]
 
-        self.main_frame.rowconfigure(list(range(MAX_GUESSES + 4)), minsize=75)
-        self.main_frame.columnconfigure(list(range(max(self._num_letters, 6))), minsize=75)
+        self._main_frame.rowconfigure(list(range(MAX_GUESSES + 4)), minsize=75)
+        self._main_frame.columnconfigure(list(range(max(self._num_letters, 6))), minsize=75)
 
         for y in range(MAX_GUESSES):
             for x in range(self._num_letters):
                 frame = self._grid[y][x] = ttk.Frame(
-                    master=self.main_frame, relief=tk.RIDGE, borderwidth=5
+                    master=self._main_frame, relief=tk.RIDGE, borderwidth=5
                 )
                 frame.grid(row=y, column=x, sticky='nsew')
                 label = self._grid_labels[y][x] = ttk.Label(
@@ -111,7 +111,7 @@ class GUI(object):
 
     def _new_game(self) -> None:
         try:
-            self.game = Game(self._num_letters)
+            self._game = Game(self._num_letters)
             self._initialize_word_grid()
             self._cursor_row = self._cursor_col = 0
             self._word_buffer = ''
@@ -119,7 +119,7 @@ class GUI(object):
 
             width = max((self._num_letters + 1) * 75, 6 * 75) + 5
             height = 75 * (MAX_GUESSES + 4)
-            self.window.geometry(f'{width}x{height}')
+            self._window.geometry(f'{width}x{height}')
         except ValueError:
             showerror(
                 'Error', f'There are no words of length {self._num_letters}. Please change' +
@@ -149,19 +149,19 @@ class GUI(object):
             self._grid_labels[self._cursor_row][self._cursor_col]['text'] = ''
             self._word_buffer = self._word_buffer[:-1]
         elif event.keysym == 'Escape':
-            self.window.destroy()
+            self._window.destroy()
         elif (key := event.char.lower()).isalpha() and len(self._word_buffer) < self._num_letters:
             self._word_buffer += key
             self._grid_labels[self._cursor_row][self._cursor_col]['text'] = key
             self._cursor_col += 1
         elif event.keysym == 'Return' and len(self._word_buffer) == self._num_letters:
-            already_guessed = self._word_buffer in self.game.guesses
+            already_guessed = self._word_buffer in self._game.guesses
             valid_guess = not already_guessed and (
                     self._word_buffer in english_words_lower_set or
-                    not self.require_real_words.get()
+                    not self._require_real_words.get()
             )
             if valid_guess:
-                guess_results = self.game.guess(self._word_buffer)
+                guess_results = self._game.guess(self._word_buffer)
 
                 self._update_used_letter_colors()
 
@@ -173,12 +173,12 @@ class GUI(object):
                 self._cursor_col = 0
                 self._cursor_row += 1
 
-                if self.game.won:
+                if self._game.won:
                     showinfo('Victory!', 'Congratulations, you won!')
                 elif self._cursor_row == MAX_GUESSES:
                     showinfo(
                         'Game Over',
-                        f'Sorry, you lost. The word was {self.game.word}. Better luck next time!'
+                        f'Sorry, you lost. The word was {self._game.word}. Better luck next time!'
                     )
             elif already_guessed:
                 showerror(
@@ -192,7 +192,7 @@ class GUI(object):
 
     def _update_used_letter_colors(self) -> None:
         for letter, label in zip(ALPHABET, self._letters_labels):
-            label['background'] = self.game.guessed_letters[letter].color
+            label['background'] = self._game.guessed_letters[letter].color
 
 
 if __name__ == '__main__':
