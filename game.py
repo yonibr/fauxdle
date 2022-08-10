@@ -33,11 +33,13 @@ class Game(object):
         self.guessed_letters: defaultdict[str, GuessResult] = defaultdict(
             lambda: GuessResult.NOT_GUESSED
         )
-        self.guesses = []
+        self.guesses = set()
 
         self.won = False
 
     def guess(self, word: str) -> list[GuessResult]:
+        self.guesses.add(word)
+
         if word == self.word:
             self.won = True
             return [GuessResult.CORRECT] * len(word)

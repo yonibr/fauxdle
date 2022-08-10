@@ -155,7 +155,8 @@ class GUI(object):
             self._grid_labels[self._cursor_row][self._cursor_col]['text'] = key
             self._cursor_col += 1
         elif event.keysym == 'Return' and len(self._word_buffer) == self._num_letters:
-            valid_guess = (
+            already_guessed = self._word_buffer in self.game.guesses
+            valid_guess = not already_guessed and (
                     self._word_buffer in english_words_lower_set or
                     not self.require_real_words.get()
             )
@@ -179,6 +180,11 @@ class GUI(object):
                         'Game Over',
                         f'Sorry, you lost. The word was {self.game.word}. Better luck next time!'
                     )
+            elif already_guessed:
+                showerror(
+                    'Invalid Guess',
+                    f'You have already guessed {self._word_buffer}. Please guess a different word!'
+                )
             else:
                 showerror(
                     'Invalid Guess', 'Please either guess real words or uncheck the checkbox.'
